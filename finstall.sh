@@ -1,13 +1,43 @@
 #!/usr/bin/env bash
 set -x
 
+### Color codes (every script needs to be fabulous with style right from the beginning)
+FC0="\033[0m" #normal
+FB="\033[1m" #bold
+FG="\033[2m" #grayed out
+FI="\033[3m" #italic
+FU="\033[4m" #underlined
+CBG="\E[1;30;42m" #black foreground, green BG (bold)
+CBY="\E[1;30;43m" #black FG, yellow BG (bold)
+CBR="\E[1;30;41m" #black FG, red BG (bold)
+ERR="$CBR ERROR:$FC0"
+WARN="$CBY WARNING:$FC0"
+SUCCESS="$CBG SUCCESS:$FC0"
+
 INSTALLER="$(dirname "$0")/installer"
+AUTODESK_SITE="https://dl.appstreaming.autodesk.com/production/installers/Fusion%20360%20Client%20Downloader.exe"
 export WINEPREFIX="/home/$USER/Downloads/F360/" #TODO user be able to add own install path
+
+function basic_checks () {
+  # check directory structure + create if not existing
+  if [ !-d $INSTALLER ]; then mkdir -p $INSTALLER; fi
+  if [ !-d $WINEPREFIX ]; then mkdir -p $WINEPREFIX; fi
+  # Check autodesk site availability
+  SITE_TEST=$(curl -s $AUTODESK_SITE)
+  if [ $? != 23 ]; then
+    printf "\n$ERR Autodesk site not reachable.\n"
+    printf "Check you connection or download installer manually from:\n"
+    printf "$AUTODESK_SITE"
+    printf "and put it into folder $INSTALLER under name 'Fusion360.exe'"
+    printf "Afterwards run the installer again."
+    exit 1
+  fi
+}
 
 function prepare_installer () {
   #download installer from autodesk site and name as "Fusion360.exe"
   if [ ! -f "$INSTALLER/Fusion360.exe" ]; then
-  wget https://dl.appstreaming.autodesk.com/production/installers/Fusion%20360%20Client%20Downloader.exe -O "$INSTALLER"/Fusion360.exe
+  wget $AUTODESK_SITE -O "$INSTALLER"/Fusion360.exe
   fi
   7z e -o$INSTALLER/ -y "$INSTALLER"/Fusion360.exe
   unzip "$INSTALLER"/python35.zip platform.pyc -d "$INSTALLER"
@@ -16,19 +46,21 @@ function prepare_installer () {
   sed -i -e 's/return uname().system/return "Windows"/g' "$INSTALLER"/platform.py
   sed -i -e 's/return uname().release/return "7"/g' "$INSTALLER"/platform.py
   sed -i -e 's/return uname().version/return "6.1.7601"/g' "$INSTALLER"/platform.py
-  echo "installer ready"
+  printf "\n$SUCCESS installer ready\n"
 }
 
 function prepare_wineprefix () {
   echo $WINEPREFIX
   wine wineboot
   winetricks vcrun2017 win7 wininet winhttp corefonts
+  printf "$SUCCESS Wineprefix preparation done"
 }
 
-#prepare_installer
+basic_checks
+prepare_installer
 prepare_wineprefix
 
-# TODO: install gecko,mono(mono-complete=suse)
+# TODO: install gecko,mono(mono-complete=suse), 7z
 #sed replace
 # sed -i -e 's/few/asd/g' hello.txt
 # 747 windows
