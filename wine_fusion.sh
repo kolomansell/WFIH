@@ -59,7 +59,7 @@ function prepare_installer () {
     printf "\n Installer will not continue\n"
     exit 1
   fi
-  unzip "$INSTALLER"/installer/python35.zip platform.pyc -d "$INSTALLER"
+  unzip "$INSTALLER"/installer/python35.zip platform.pyc -d "$INSTALLER/installer/"
   if [ ! -e "$INSTALLER/installer/platform.pyc" ]; then
     printf "\n$ERR platform.pyc missing, something wen during decompression.\n "
     printf "\n Installer will not continue\n"
