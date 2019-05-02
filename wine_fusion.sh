@@ -53,7 +53,7 @@ function prepare_installer () {
   if [ ! -f "$INSTALLER/Fusion360.exe" ]; then
   wget $AUTODESK_SITE -O "$INSTALLER"/Fusion360.exe
   fi
-  7z e -o$INSTALLER/installer/ -y "$INSTALLER"/Fusion360.exe
+  7z x -o$INSTALLER/installer/ -y "$INSTALLER"/Fusion360.exe
   if [ ! -e "$INSTALLER/installer/python35.zip"  ]; then
     printf "\n$ERR python35.zip missing, something wen during installer decompression.\n "
     printf "\n Installer will not continue\n"
