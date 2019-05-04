@@ -76,7 +76,7 @@ function prepare_installer () {
 function prepare_wineprefix () {
   echo $WINEPREFIX
   wine wineboot
-  winetricks vcrun2017 win7 wininet winhttp corefonts
+  winetricks vcrun2017 win7 wininet winhttp corefonts d3dx9
   printf "$SUCCESS Wineprefix preparation done"
 }
 
