@@ -16,7 +16,7 @@ SUCCESS="$CBG SUCCESS:$FC0"
 
 INSTALLER="$(dirname "$0")"
 AUTODESK_SITE="https://dl.appstreaming.autodesk.com/production/installers/Fusion%20360%20Client%20Downloader.exe"
-export WINEPREFIX="/home/$USER/FUSION360" #TODO user be able to add own install path
+export WINEPREFIX="$(pwd)/WINEPREFIX" #TODO user be able to add own install path
 
 function usage () {
 printf "\n
@@ -73,12 +73,26 @@ function prepare_installer () {
   printf "\n$SUCCESS installer ready\n"
 }
 
-function prepare_wineprefix () {
+function create_wineprefix () {
   echo $WINEPREFIX
   wine wineboot
-  winetricks vcrun2017 win7 wininet winhttp corefonts d3dx9;
+  winetricks vcrun2017 win7 corefonts;
   printf "$SUCCESS Wineprefix preparation done"
 }
+
+function run_installer () {
+  wine "$INSTALLER"/installer/streamer.exe --full-deploy 2>&1 > /dev/null |
+  while IFS= read -r LOGLINE
+  do
+    if echo "$LOGLINE" | grep "(60 sec)"; then 
+      for W_PROCESS in $(ps -ef | awk '/[A-Z]:\\|exe/ {print $2}'); do kill -9 $W_PROCESS; done
+    fi
+  done
+  #etup-dxvk install
+  winetricks wininet winhttp;
+  
+} 
+
 
 function cleanup () {
   # remove everything inside decompressed installer + wineprefix
@@ -111,9 +125,12 @@ while getopts "irh" OPT; do
 done
 shift $((OPTIND -1))
 
+cleanup
 basic_checks
 prepare_installer
-prepare_wineprefix
+create_wineprefix
+run_installer 
+
 
 # TODO: install gecko,mono(mono-complete=suse), 7z
 #sed replace
